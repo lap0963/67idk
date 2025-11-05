@@ -1,69 +1,197 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CSS-Only DVD Multiply Illusion</title>
-<style>
-  html, body {
-    height: 100%;
-    margin: 0;
-    background: black;
-    overflow: hidden;
-  }
-
-  .logo {
-    position: absolute;
-    width: 120px;
-    height: 80px;
-    background: linear-gradient(135deg, #0ff, #f0f, #ff0);
-    color: black;
-    font-family: Arial, sans-serif;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    text-shadow: 0 0 5px white;
-    animation: moveX 7s linear infinite alternate,
-               moveY 5s linear infinite alternate,
-               colorShift 10s linear infinite;
-  }
-
-  /* Offset the animation timing for illusion of multiplying */
-  .logo:nth-child(2) {
-    animation-delay: -2s, -1s, -4s;
-  }
-  .logo:nth-child(3) {
-    animation-delay: -4s, -3s, -2s;
-  }
-  .logo:nth-child(4) {
-    animation-delay: -6s, -5s, -3s;
-  }
-
-  @keyframes moveX {
-    0%   { left: 0; }
-    100% { left: calc(100% - 120px); }
-  }
-
-  @keyframes moveY {
-    0%   { top: 0; }
-    100% { top: calc(100% - 80px); }
-  }
-
-  @keyframes colorShift {
-    0%   { background: linear-gradient(135deg, #0ff, #f0f, #ff0); }
-    25%  { background: linear-gradient(135deg, #f00, #0f0, #00f); }
-    50%  { background: linear-gradient(135deg, #ff0, #0ff, #f0f); }
-    75%  { background: linear-gradient(135deg, #0f0, #ff0, #f00); }
-    100% { background: linear-gradient(135deg, #0ff, #f0f, #ff0); }
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DVD Bouncing 67 – 100 → Wipe → Restart</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: #000;
+      overflow: hidden;
+      height: 100vh;
+      user-select: none;
+      position: relative;
+    }
+    .logo {
+      position: absolute;
+      font: bold 60px/1 "Arial Black", Arial, sans-serif;
+      color: #fff;
+      text-shadow: 0 0 12px currentColor, 0 0 24px currentColor;
+      pointer-events: none;
+      transition: color 0.25s ease;
+    }
+    /* Black wipe overlay */
+    #wipe {
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      z-index: 9999;
+      transition: left 1.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+  </style>
 </head>
 <body>
-  <div class="logo">DVD</div>
-  <div class="logo">DVD</div>
-  <div class="logo">DVD</div>
-  <div class="logo">DVD</div>
+  <div id="wipe"></div>
+
+  <script>
+    // 20 NEON COLORS
+    const NEON_COLORS = [
+      '#ff00ff', '#00ffff', '#ffff00', '#ff0066', '#00ff99',
+      '#ff6600', '#cc00ff', '#00ffcc', '#ffcc00', '#ff3399',
+      '#33ffcc', '#ff9900', '#9900ff', '#00ccff', '#ff3366',
+      '#66ff33', '#ff0099', '#00ff66', '#ff9933', '#3366ff'
+    ];
+    const COLORS = NEON_COLORS.slice();
+
+    const MAX_CLONES = 100;
+    const OFFSET = 50;
+    const WIPE_DELAY = 20000; // 20 seconds
+
+    let clones = [];
+    let wipeTimeout = null;
+    let isWiping = false;
+    const wipeEl = document.getElementById('wipe');
+
+    class Bouncing67 {
+      constructor() {
+        this.el = document.createElement('div');
+        this.el.className = 'logo';
+        this.el.textContent = '67';
+        document.body.appendChild(this.el);
+
+        this.size = 80;
+        this.el.style.fontSize = this.size + 'px';
+
+        this.reset();
+      }
+
+      reset() {
+        const w = window.innerWidth - this.size;
+        const h = window.innerHeight - this.size;
+        this.x = Math.random() * w;
+        this.y = Math.random() * h;
+        this.vx = (Math.random() > 0.5 ? 1 : -1) * (2 + Math.random() * 3);
+        this.vy = (Math.random() > 0.5 ? 1 : -1) * (2 + Math.random() * 3);
+        this.color = this.randomColor();
+        this.updatePos();
+      }
+
+      randomColor() {
+        return COLORS[Math.floor(Math.random() * COLORS.length)];
+      }
+
+      updatePos() {
+        this.el.style.left = this.x + 'px';
+        this.el.style.top = this.y + 'px';
+        this.el.style.color = this.color;
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        let hit = { x: false, y: false };
+
+        if (this.x <= 0 || this.x >= window.innerWidth - this.size) {
+          this.vx *= -1;
+          this.x = Math.max(0, Math.min(this.x, window.innerWidth - this.size));
+          hit.x = true;
+        }
+        if (this.y <= 0 || this.y >= window.innerHeight - this.size) {
+          this.vy *= -1;
+          this.y = Math.max(0, Math.min(this.y, window.innerHeight - this.size));
+          hit.y = true;
+        }
+
+        if (hit.x || hit.y) {
+          this.color = this.randomColor();
+          this.el.style.color = this.color;
+
+          // ONE CLONE PER BOUNCE
+          if (clones.length < MAX_CLONES && !isWiping) {
+            const clone = new Bouncing67();
+
+            const dx = (Math.random() - 0.5) * OFFSET;
+            const dy = (Math.random() - 0.5) * OFFSET;
+            clone.x = this.x + dx;
+            clone.y = this.y + dy;
+
+            clone.x = Math.max(0, Math.min(clone.x, window.innerWidth - clone.size));
+            clone.y = Math.max(0, Math.min(clone.y, window.innerHeight - clone.size));
+
+            const baseSpeed = 2 + Math.random() * 3;
+            if (hit.x) {
+              clone.vx = (this.x <= window.innerWidth / 2 ? 1 : -1) * baseSpeed;
+              clone.vy = (Math.random() > 0.5 ? 1 : -1) * (1 + Math.random() * 2);
+            } else if (hit.y) {
+              clone.vy = (this.y <= window.innerHeight / 2 ? 1 : -1) * baseSpeed;
+              clone.vx = (Math.random() > 0.5 ? 1 : -1) * (1 + Math.random() * 2);
+            }
+
+            if (Math.abs(clone.vx) < 0.5) clone.vx = clone.vx > 0 ? 1.5 : -1.5;
+            if (Math.abs(clone.vy) < 0.5) clone.vy = clone.vy > 0 ? 1.5 : -1.5;
+
+            clone.color = this.color;
+            clone.updatePos();
+            clones.push(clone);
+          }
+
+          // --- CHECK FOR 100 CLONES ---
+          if (clones.length === MAX_CLONES && !wipeTimeout) {
+            wipeTimeout = setTimeout(startWipe, WIPE_DELAY);
+          }
+        }
+
+        this.updatePos();
+      }
+    }
+
+    function startWipe() {
+      if (isWiping) return;
+      isWiping = true;
+      wipeEl.style.left = '0%'; // trigger wipe
+
+      setTimeout(() => {
+        // --- CLEAN UP ---
+        clones.forEach(c => c.el.remove());
+        clones = [];
+        wipeTimeout = null;
+        isWiping = false;
+
+        // Reset wipe
+        wipeEl.style.left = '-100%';
+
+        // --- RESTART WITH ONE 67 ---
+        clones = [new Bouncing67()];
+      }, 1600); // after wipe animation
+    }
+
+    function animate() {
+      if (!isWiping) {
+        clones.forEach(c => c.update());
+      }
+      requestAnimationFrame(animate);
+    }
+
+    // Resize handler
+    window.addEventListener('resize', () => {
+      clones.forEach(c => {
+        c.x = Math.min(c.x, window.innerWidth - c.size);
+        c.y = Math.min(c.y, window.innerHeight - c.size);
+      });
+    });
+
+    // Start animation
+    clones = [new Bouncing67()];
+    animate();
+  </script>
 </body>
 </html>
