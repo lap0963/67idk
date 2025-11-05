@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>67 Screensaver</title>
+<title>CSS-Only DVD Multiply Illusion</title>
 <style>
   html, body {
     height: 100%;
@@ -14,8 +14,8 @@
 
   .logo {
     position: absolute;
-    width: 150px;
-    height: 100px;
+    width: 120px;
+    height: 80px;
     background: linear-gradient(135deg, #0ff, #f0f, #ff0);
     color: black;
     font-family: Arial, sans-serif;
@@ -30,14 +30,25 @@
                colorShift 10s linear infinite;
   }
 
+  /* Offset the animation timing for illusion of multiplying */
+  .logo:nth-child(2) {
+    animation-delay: -2s, -1s, -4s;
+  }
+  .logo:nth-child(3) {
+    animation-delay: -4s, -3s, -2s;
+  }
+  .logo:nth-child(4) {
+    animation-delay: -6s, -5s, -3s;
+  }
+
   @keyframes moveX {
     0%   { left: 0; }
-    100% { left: calc(100% - 150px); }
+    100% { left: calc(100% - 120px); }
   }
 
   @keyframes moveY {
     0%   { top: 0; }
-    100% { top: calc(100% - 100px); }
+    100% { top: calc(100% - 80px); }
   }
 
   @keyframes colorShift {
@@ -50,6 +61,9 @@
 </style>
 </head>
 <body>
-  <div class="logo">67</div>
+  <div class="logo">DVD</div>
+  <div class="logo">DVD</div>
+  <div class="logo">DVD</div>
+  <div class="logo">DVD</div>
 </body>
 </html>
